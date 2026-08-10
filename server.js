@@ -14,17 +14,14 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-    res.status(200).json({ status: "success", message: "OTP Backend is running with Brevo API!" });
+    res.status(200).json({ status: "success", message: "OTP Backend is running with Resend API!" });
 });
 
 // Aapki Firebase Database URL
 const FIREBASE_URL = "https://botpy-b99d8-default-rtdb.firebaseio.com";
 
-// Aapki Nayi Brevo API Key
-const BREVO_API_KEY = "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"; 
-
-// Aapka Sender Email
-const SENDER_EMAIL = "hrryonline@gmail.com";
+// Aapki Resend API Key
+const RESEND_API_KEY = "re_XPx1ZG3b_J7tU3EwLzLq4DPb6oyD2wqS4"; 
 
 function getEmailKey(email) {
     return email.toLowerCase().replace(/[^a-zA-Z0-9]/g, '_');
@@ -55,12 +52,12 @@ app.post('/api/send-otp', async (req, res) => {
             used: false
         });
 
-        console.log("2️⃣ Brevo HTTP API ke zariye email bheja ja raha hai...");
-        await axios.post('https://api.brevo.com/v3/smtp/email', {
-            sender: { name: "hrry.online", email: SENDER_EMAIL },
-            to: [{ email: email }],
+        console.log("2️⃣ Resend API ke zariye email bheja ja raha hai...");
+        await axios.post('https://api.resend.com/emails', {
+            from: 'hrry.online <onboarding@resend.dev>',
+            to: [email],
             subject: `${otp} is your verification code`,
-            htmlContent: `
+            html: `
             <div style="background:#09090b; padding:30px; font-family:-apple-system, BlinkMacSystemFont, sans-serif; color:#ffffff; text-align:center;">
                 <div style="max-width:360px; margin:auto; background:#18181b; padding:30px; border-radius:20px; border:1px solid #27272a;">
                     <h2 style="margin-bottom:8px; font-size:22px; color:#ffffff;">Verification Code</h2>
@@ -73,9 +70,8 @@ app.post('/api/send-otp', async (req, res) => {
             </div>`
         }, {
             headers: {
-                'api-key': BREVO_API_KEY,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Authorization': `Bearer ${RESEND_API_KEY}`,
+                'Content-Type': 'application/json'
             }
         });
 
