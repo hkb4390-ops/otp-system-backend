@@ -17,13 +17,11 @@ app.get('/', (req, res) => {
     res.status(200).json({ status: "success", message: "OTP Backend is running with Brevo API!" });
 });
 
-// Aapki Firebase Database URL
 const FIREBASE_URL = "https://botpy-b99d8-default-rtdb.firebaseio.com";
 
-// Aapki Brevo API Key
-const BREVO_API_KEY = "Xkeysib-3318cdae3a2d56ad50b9227a73d29a8809061b58a4997667c81c8c9b556bcc0c-LlK37ElSEr8327k2"; 
+// Yahan 'xkeysib' ko lowercase (chota x) kar diya gaya hai
+const BREVO_API_KEY = "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"; 
 
-// Aapka Sender Email
 const SENDER_EMAIL = "hrryonline@gmail.com";
 
 function getEmailKey(email) {
