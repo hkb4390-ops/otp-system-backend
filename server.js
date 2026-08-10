@@ -1,4 +1,4 @@
-require('dotenv').config(); // Fixed: Small 'r' for require
+require('dotenv').config();
 const express = require('express');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
@@ -24,16 +24,17 @@ app.get('/', (req, res) => {
 // Environment Variables Check
 const FIREBASE_URL = process.env.FIREBASE_URL;
 
-// Nodemailer Gmail SMTP Transport
+// Nodemailer Gmail SMTP Transport (Port 465 fixed for Render timeout issue)
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // TLS
+    port: 465,
+    secure: true, // true for 465 (SSL), false for 587
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : ''
     },
-    connectionTimeout: 10000
+    connectionTimeout: 20000, // 20 seconds timeout
+    socketTimeout: 20000
 });
 
 // Helper Functions
