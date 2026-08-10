@@ -5,37 +5,33 @@ const cors = require('cors');
 
 const app = express();
 
-// External websites se requests accept karne ke liye CORS
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// Server Live Request Logger
 app.use((req, res, next) => {
     console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
     next();
 });
 
-// Render ke liye Default Health Check Route
 app.get('/', (req, res) => {
     res.status(200).json({ status: "success", message: "OTP Backend is running with Brevo API!" });
 });
 
-// Environment Variables
 const FIREBASE_URL = process.env.FIREBASE_URL;
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
+
+// Aapki Brevo API Key seedha yahan daal di gayi hai
+const BREVO_API_KEY = "Xkeysib-3318cdae3a2d56ad50b9227a73d29a8809061b58a4997667c81c8c9b556bcc0c-OMno2ngSGKdvT4Ft"; 
+
 const SENDER_EMAIL = process.env.SENDER_EMAIL || "noreply@hrry.online";
 
-// Helper Functions
 function getEmailKey(email) {
     return email.toLowerCase().replace(/[^a-zA-Z0-9]/g, '_');
 }
 
-// 4-Digit OTP Generator
 function generateOTP() {
     return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-// 1. Send OTP Endpoint
 app.post('/api/send-otp', async (req, res) => {
     const { email } = req.body;
     console.log(`\n📩 New OTP Request for Email: ${email}`);
@@ -49,17 +45,11 @@ app.post('/api/send-otp', async (req, res) => {
         return res.status(500).json({ success: false, message: 'Firebase URL invalid hai.' });
     }
 
-    if (!BREVO_API_KEY) {
-        console.error("❌ ERROR: BREVO_API_KEY missing in environment variables!");
-        return res.status(500).json({ success: false, message: 'Brevo API Key missing hai Render environment mein.' });
-    }
-
     const otp = generateOTP();
-    const expiresAt = Date.now() + 3 * 60 * 1000; // 3 Minutes Expiry
+    const expiresAt = Date.now() + 3 * 60 * 1000;
     const emailKey = getEmailKey(email);
 
     try {
-        // Step A: Save to Firebase
         console.log("1️⃣ Firebase me 4-digit OTP save ho raha hai...");
         await axios.put(`${FIREBASE_URL}/otps/${emailKey}.json`, {
             otp: otp,
@@ -68,7 +58,6 @@ app.post('/api/send-otp', async (req, res) => {
             used: false
         });
 
-        // Step B: Send Email via Brevo HTTP API
         console.log("2️⃣ Brevo HTTP API ke zariye email bheja ja raha hai...");
         await axios.post('https://api.brevo.com/v3/smtp/email', {
             sender: { name: "hrry.online", email: SENDER_EMAIL },
@@ -98,21 +87,16 @@ app.post('/api/send-otp', async (req, res) => {
 
     } catch (error) {
         console.error("❌ Send OTP Error:", error.response?.data || error.message);
-        return res.status(500).json({ success: false, message: 'OTP bhejne me error aaya. API key check karein.' });
+        return res.status(500).json({ success: false, message: 'OTP bhejne me error aaya.' });
     }
 });
 
-// 2. Verify OTP Endpoint
 app.post('/api/verify-otp', async (req, res) => {
     const { email, otp } = req.body;
     console.log(`\n🔑 Verification Request: ${email} -> ${otp}`);
 
     if (!email || !otp) {
         return res.status(400).json({ success: false, message: 'Email aur OTP dono zaroori hain!' });
-    }
-
-    if (!FIREBASE_URL || !FIREBASE_URL.startsWith('http')) {
-        return res.status(500).json({ success: false, message: 'Backend config error: Firebase URL invalid hai.' });
     }
 
     const emailKey = getEmailKey(email);
@@ -128,13 +112,12 @@ app.post('/api/verify-otp', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Yeh OTP pehle hi use ho chuka hai!' });
         }
         if (Date.now() > data.expiresAt) {
-            return res.status(400).json({ success: false, message: 'OTP expire ho chuka hai! Naya OTP mangein.' });
+            return res.status(400).json({ success: false, message: 'OTP expire ho chuka hai!' });
         }
         if (data.otp !== otp.trim()) {
             return res.status(400).json({ success: false, message: 'Galat OTP! Sahi code daalein.' });
         }
 
-        // Mark OTP as used in Firebase
         await axios.patch(`${FIREBASE_URL}/otps/${emailKey}.json`, { used: true });
         console.log("✅ Email Verified Successfully!\n");
 
