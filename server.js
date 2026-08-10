@@ -20,8 +20,8 @@ app.get('/', (req, res) => {
 // Aapki Firebase Database URL
 const FIREBASE_URL = "https://botpy-b99d8-default-rtdb.firebaseio.com";
 
-// Aapki Resend API Key
-const RESEND_API_KEY = "re_XPx1ZG3b_J7tU3EwLzLq4DPb6oyD2wqS4"; 
+// Aapki Nayi Resend API Key
+const RESEND_API_KEY = "re_g93W2YJP_8Ufx23nLANVVrYF26u2NFAbx"; 
 
 function getEmailKey(email) {
     return email.toLowerCase().replace(/[^a-zA-Z0-9]/g, '_');
