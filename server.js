@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 const FIREBASE_URL = "https://botpy-b99d8-default-rtdb.firebaseio.com";
 
 // Aapki Nayi Brevo API Key
-const BREVO_API_KEY = "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"; 
+const BREVO_API_KEY = "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"; 
 
 // Aapka Sender Email
 const SENDER_EMAIL = "hrryonline@gmail.com";
