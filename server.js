@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config(); // Fixed: Small 'r' for require
 const express = require('express');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
@@ -10,12 +10,18 @@ const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// Termux Live Request Logger
+// Server Live Request Logger
 app.use((req, res, next) => {
     console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
     next();
 });
 
+// Render ke liye Default Health Check Route
+app.get('/', (req, res) => {
+    res.status(200).json({ status: "success", message: "OTP Backend is running perfectly!" });
+});
+
+// Environment Variables Check
 const FIREBASE_URL = process.env.FIREBASE_URL;
 
 // Nodemailer Gmail SMTP Transport
@@ -49,6 +55,15 @@ app.post('/api/send-otp', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Email required hai!' });
     }
 
+    // Checking if Firebase URL is properly configured
+    if (!FIREBASE_URL || !FIREBASE_URL.startsWith('http')) {
+        console.error("❌ ERROR: FIREBASE_URL is missing or invalid in environment variables!");
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Backend Configuration Error: Firebase URL invalid hai.' 
+        });
+    }
+
     const otp = generateOTP(); // 4 Digits
     const expiresAt = Date.now() + 3 * 60 * 1000; // 3 Minutes Expiry
     const emailKey = getEmailKey(email);
@@ -63,8 +78,8 @@ app.post('/api/send-otp', async (req, res) => {
             used: false
         });
 
-        // Step B: Send Email via Nodemailer (hrry.online)
-        console.log("2️⃣ hrry.online ke naam se email bheja ja raha hai...");
+        // Step B: Send Email via Nodemailer
+        console.log("2️⃣ Email bheja ja raha hai...");
         await transporter.sendMail({
             from: `"hrry.online" <${process.env.EMAIL_USER}>`,
             to: email,
@@ -86,8 +101,14 @@ app.post('/api/send-otp', async (req, res) => {
         return res.json({ success: true, message: 'OTP Sent Successfully!' });
 
     } catch (error) {
-        console.error("❌ Send OTP Error:", error.message || error);
-        return res.status(500).json({ success: false, message: error.message || 'OTP bhejne me error aaya.' });
+        console.error("❌ Send OTP Error:", error.message);
+        
+        // Agar Axios ka URL error hai toh clear message bhejein
+        if (error.code === 'ERR_INVALID_URL') {
+            return res.status(500).json({ success: false, message: 'Backend config error: Firebase link galat hai.' });
+        }
+        
+        return res.status(500).json({ success: false, message: 'OTP bhejne me error aaya. Email details check karein.' });
     }
 });
 
@@ -98,6 +119,10 @@ app.post('/api/verify-otp', async (req, res) => {
 
     if (!email || !otp) {
         return res.status(400).json({ success: false, message: 'Email aur OTP dono zaroori hain!' });
+    }
+
+    if (!FIREBASE_URL || !FIREBASE_URL.startsWith('http')) {
+        return res.status(500).json({ success: false, message: 'Backend config error: Firebase URL invalid hai.' });
     }
 
     const emailKey = getEmailKey(email);
@@ -132,4 +157,4 @@ app.post('/api/verify-otp', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Termux Server listening on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server listening on port ${PORT}`));
