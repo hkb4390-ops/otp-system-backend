@@ -14,7 +14,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-    res.status(200).json({ status: "success", message: "OTP Backend is running with Gmail SMTP!" });
+    res.status(200).json({ status: "success", message: "Backend is running with Gmail SMTP Port 587!" });
 });
 
 const FIREBASE_URL = "https://botpy-b99d8-default-rtdb.firebaseio.com";
@@ -22,8 +22,8 @@ const FIREBASE_URL = "https://botpy-b99d8-default-rtdb.firebaseio.com";
 // Gmail SMTP सेटअप (Render Environment Variables से पासवर्ड लेगा)
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, 
+    port: 587,         // <-- यहाँ 465 की जगह 587 कर दिया है
+    secure: false,     // <-- 587 के लिए इसे false रखना होता है
     auth: {
         user: process.env.GMAIL_EMAIL, 
         pass: process.env.GMAIL_APP_PASSWORD 
@@ -47,26 +47,17 @@ app.post('/api/send-otp', async (req, res) => {
     const emailKey = getEmailKey(email);
 
     try {
-        // 1. Firebase में OTP सेव करना
+        console.log("⏳ Sending email to:", email);
+        
         await axios.put(`${FIREBASE_URL}/otps/${emailKey}.json`, { 
             otp, email: email.toLowerCase(), expiresAt, used: false 
         });
 
-        // 2. Direct Gmail SMTP से ईमेल भेजना
         const mailOptions = {
             from: `"hrry.online" <${process.env.GMAIL_EMAIL}>`,
             to: email,
             subject: `${otp} is your verification code`,
-            html: `
-            <div style="background:#09090b; padding:30px; font-family:sans-serif; color:#ffffff; text-align:center;">
-                <div style="max-width:360px; margin:auto; background:#18181b; padding:30px; border-radius:20px; border:1px solid #27272a;">
-                    <h2 style="margin-bottom:8px; font-size:22px; color:#ffffff;">Verification Code</h2>
-                    <p style="color:#a1a1aa; font-size:14px; margin-bottom:20px;">Use the 4-digit code below to verify your email.</p>
-                    <div style="background:#000000; border:1px solid #3f3f46; border-radius:12px; padding:16px; font-size:36px; font-weight:bold; letter-spacing:12px; color:#38bdf8;">
-                        ${otp}
-                    </div>
-                </div>
-            </div>`
+            html: `<div style="text-align:center; padding:20px; background:#000; color:#fff;"><h2>Verification Code</h2><p style="font-size:24px; color:#38bdf8;">${otp}</p></div>`
         };
 
         await transporter.sendMail(mailOptions);
