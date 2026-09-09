@@ -14,7 +14,7 @@ from hydrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppIn
 
 API_ID = int(os.environ.get("API_ID", "34305725"))
 API_HASH = os.environ.get("API_HASH", "a7439c105c050b5011a90bda4f0e1e90")
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "8929869494:AAEhXBEO-b23LeEXtMhbDWlBNmYFaYr-Luw")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "8929869494:AAHX4SySbvp3QDljpwZYefdA4Q1qW_m2mzE")
 
 MINI_APP_URL = "https://hrryimgpost-y7qp.vercel.app/" 
 
