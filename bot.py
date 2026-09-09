@@ -48,6 +48,7 @@ async def start_command(client, message):
         ]
     )
     
+    # Sirf ek hi baar message send hoga aur pin hoga
     sent_message = await message.reply_text(
         text=welcome_text, 
         reply_markup=buttons,
