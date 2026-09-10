@@ -1,5 +1,6 @@
 import asyncio
 
+# Python 3.14 Event Loop Fix
 try:
     asyncio.get_event_loop()
 except RuntimeError:
@@ -19,152 +20,20 @@ from hydrogram.enums import ChatMemberStatus
 
 API_ID = int(os.environ.get("API_ID", "34305725"))
 API_HASH = os.environ.get("API_HASH", "a7439c105c050b5011a90bda4f0e1e90")
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "8929869494:AAHX4SySbvp3QDljpwZYefdA4Q1qW_m2mzE")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "8929869494:AAEhXBEO-b23LeEXtMhbDWlBNmYFaYr-Luw")
 
+# New Mini App URL & Channel Username
 MINI_APP_URL = "https://study-mods-hrry.vercel.app/"
 CHANNEL_USERNAME = "hrbseb10thallcorse"
 
 app = Client("premium_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 async def check_user_joined(client: Client, user_id: int) -> bool:
+    """Live check if user is a member/admin of the channel"""
     try:
         member = await client.get_chat_member(f"@{CHANNEL_USERNAME}", user_id)
         if member.status in [ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
             return True
-    except Exception as e:
-        print(f"Force Sub Check Error: {e}")
-        return False
-    return False
-
-def get_welcome_menu(name: str, username: str, user_id: int):
-    user_handle = f"@{username}" if username else "N/A"
-    
-    welcome_text = (
-        "⚡ **──────────────────────────────**\n"
-        "👑 **WELCOME TO PREMIUM DASHBOARD** 👑\n"
-        "⚡ **──────────────────────────────**\n\n"
-        "👤 **USER PROFILE DETAILS:**\n"
-        f"├ 📛 **NAME:** `{name}`\n"
-        f"├ 🆔 **USER ID:** `{user_id}`\n"
-        f"└ 🌐 **USERNAME:** {user_handle}\n\n"
-        "🚀 **STATUS: VERIFIED & ACTIVE** ✅\n"
-        "Aapka account successfully verify ho chuka hai. Niche diye gaye button se Mini App access karein.\n\n"
-        "👇 **NICHE DIYE GAYE BUTTON SE OPEN KAREIN:**"
-    )
-    
-    buttons = InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("🟢 Open App", web_app=WebAppInfo(url=MINI_APP_URL))
-            ]
-        ]
-    )
-    return welcome_text, buttons
-
-def get_force_sub_menu():
-    text = (
-        "⛔ **ACCESS RESTRICTED! / ACCESS DENIED** ⛔\n\n"
-        "⚠️ **Aapne humara official channel join nahi kiya hai.**\n"
-        "Mini App use karne ke liye channel join karna zaroori hai.\n\n"
-        "📢 **REQUIRED CHANNEL:** @hrbseb10thallcorse\n\n"
-        "📌 **Steps to Unlock:**\n"
-        "1️⃣ Niche **'📢 Join Channel'** button par click karke channel join karein.\n"
-        "2️⃣ Join karne ke baad **'🔄 Verify / Check Again'** par click karein."
-    )
-    buttons = InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("📢 Join Channel", url=f"https://t.me/{CHANNEL_USERNAME}")
-            ],
-            [
-                InlineKeyboardButton("🔄 Verify / Check Again", callback_data="check_subscription")
-            ]
-        ]
-    )
-    return text, buttons
-
-@app.on_message(filters.command("start") & filters.private)
-async def start_command(client, message):
-    user = message.from_user
-    name = user.first_name if user.first_name else "User"
-    username = user.username if user.username else ""
-    user_id = user.id
-
-    try:
-        await client.set_chat_menu_button(
-            chat_id=message.chat.id,
-            menu_button=MenuButtonWebApp(text="🟢 Open App", web_app=WebAppInfo(url=MINI_APP_URL))
-        )
-    except Exception as e:
-        print(f"Menu Button Set Error: {e}")
-
-    is_joined = await check_user_joined(client, user_id)
-    
-    if not is_joined:
-        text, buttons = get_force_sub_menu()
-        await message.reply_text(text=text, reply_markup=buttons, quote=True)
-        return
-
-    text, buttons = get_welcome_menu(name, username, user_id)
-    sent_message = await message.reply_text(text=text, reply_markup=buttons, quote=True)
-    
-    try:
-        await sent_message.pin(both_sides=True)
-    except Exception as e:
-        print(f"Pin karne me error: {e}")
-
-# Channel me Direct Post Bhejne Ke Liye Command (/post)
-@app.on_message(filters.command("post") & filters.private)
-async def post_to_channel(client, message):
-    channel_text = (
-        "⚡ **──────────────────────────────**\n"
-        "👑 **OFFICIAL STUDY MODS MINI APP** 👑\n"
-        "⚡ **──────────────────────────────**\n\n"
-        "🚀 **FREE STUDY MATERIAL & MODS ACCESS**\n"
-        "Niche diye gaye **🟢 Open App** button par click karke direct App open karein!\n\n"
-        "👇 **CLICK BELOW TO START:**"
-    )
-    channel_buttons = InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("🟢 Open App", web_app=WebAppInfo(url=MINI_APP_URL))
-            ]
-        ]
-    )
-    try:
-        await client.send_message(
-            chat_id=f"@{CHANNEL_USERNAME}",
-            text=channel_text,
-            reply_markup=channel_buttons
-        )
-        await message.reply_text("✅ Channel me successfully post bhej di gayi hai!")
-    except Exception as e:
-        await message.reply_text(f"❌ Channel me post bhejne me error aaya: {e}\n\nMake sure Bot channel me Admin hai!")
-
-@app.on_callback_query(filters.regex("^check_subscription$"))
-async def check_subscription_callback(client, callback_query: CallbackQuery):
-    user = callback_query.from_user
-    name = user.first_name if user.first_name else "User"
-    username = user.username if user.username else ""
-    user_id = user.id
-
-    is_joined = await check_user_joined(client, user_id)
-
-    if is_joined:
-        await callback_query.answer("✅ Verification Successful! Access Granted.", show_alert=True)
-        text, buttons = get_welcome_menu(name, username, user_id)
-        sent_message = await callback_query.message.edit_text(text=text, reply_markup=buttons)
-        try:
-            await sent_message.pin(both_sides=True)
-        except Exception as e:
-            print(f"Pin error: {e}")
-    else:
-        await callback_query.answer("❌ Aapne abhi tak Channel Join nahi kiya hai! Pehle Join karein fir Check karein.", show_alert=True)
-
-print("Bot Successfully Start Ho Gaya Hai!")
-
-if __name__ == "__main__":
-    app.run()
     except Exception as e:
         print(f"Force Sub Check Error: {e}")
         return False
@@ -272,3 +141,4 @@ print("Bot Successfully Start Ho Gaya Hai!")
 
 if __name__ == "__main__":
     app.run()
+
