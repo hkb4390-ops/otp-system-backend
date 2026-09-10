@@ -8,17 +8,22 @@ except RuntimeError:
     asyncio.set_event_loop(loop)
 
 import os
-import urllib.parse
 from hydrogram import Client, filters
-from hydrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, CallbackQuery
+from hydrogram.types import (
+    InlineKeyboardMarkup, 
+    InlineKeyboardButton, 
+    WebAppInfo, 
+    CallbackQuery,
+    MenuButtonWebApp
+)
 from hydrogram.enums import ChatMemberStatus
 
 API_ID = int(os.environ.get("API_ID", "34305725"))
 API_HASH = os.environ.get("API_HASH", "a7439c105c050b5011a90bda4f0e1e90")
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8929869494:AAHX4SySbvp3QDljpwZYefdA4Q1qW_m2mzE")
 
-# Updated Mini App URL & Channel Username
-MINI_APP_URL = "https://hrryimgpost-y7qp.vercel.app/"
+# New Mini App URL & Channel Username
+MINI_APP_URL = "https://study-mods-hrry.vercel.app/"
 CHANNEL_USERNAME = "hrbseb10thallcorse"
 
 app = Client("premium_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
@@ -35,9 +40,6 @@ async def check_user_joined(client: Client, user_id: int) -> bool:
     return False
 
 def get_welcome_menu(name: str, username: str, user_id: int):
-    wa_message = f"Hello! Mera naam {name} hai aur meri TG User ID {user_id} hai. Mujhe Bot ki Premium Key kharidni hai."
-    wa_url = f"https://wa.me/9199015259?text={urllib.parse.quote(wa_message)}"
-    
     user_handle = f"@{username}" if username else "N/A"
     
     welcome_text = (
@@ -49,20 +51,14 @@ def get_welcome_menu(name: str, username: str, user_id: int):
         f"├ 🆔 **USER ID:** `{user_id}`\n"
         f"└ 🌐 **USERNAME:** {user_handle}\n\n"
         "🚀 **STATUS: VERIFIED & ACTIVE** ✅\n"
-        "Aapka account successfully verify ho chuka hai. Niche diye gaye button se Mini App access karein.\n\n"
-        "🔑 **PREMIUM KEY INFORMATION:**\n"
-        "├ 💸 **PRICE:** `₹20 ONLY`\n"
-        "└ 💡 **NOTE:** Premium Key kharidne ke liye 'Buy Key' button par click karke WhatsApp support se contact karein.\n\n"
-        "👇 **NICHE DIYE GAYE BUTTONS SE CHOOSE KAREIN:**"
+        "Aapka account successfully verify ho chuka hai. Niche diye gaye button se ya Menu Button se Mini App access karein.\n\n"
+        "👇 **NICHE DIYE GAYE BUTTON SE OPEN KAREIN:**"
     )
     
     buttons = InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton("🟢 Open App", web_app=WebAppInfo(url=MINI_APP_URL))
-            ],
-            [
-                InlineKeyboardButton("🔴 Buy Key (₹20)", url=wa_url)
             ]
         ]
     )
@@ -72,7 +68,7 @@ def get_force_sub_menu():
     text = (
         "⛔ **ACCESS RESTRICTED! / ACCESS DENIED** ⛔\n\n"
         "⚠️ **Aapne humara official channel join nahi kiya hai.**\n"
-        "Mini App aur Bot ke premium features use karne ke liye channel join karna zaroori hai.\n\n"
+        "Mini App use karne ke liye channel join karna zaroori hai.\n\n"
         "📢 **REQUIRED CHANNEL:** @hrbseb10thallcorse\n\n"
         "📌 **Steps to Unlock:**\n"
         "1️⃣ Niche **'📢 Join Channel'** button par click karke channel join karein.\n"
@@ -96,6 +92,15 @@ async def start_command(client, message):
     name = user.first_name if user.first_name else "User"
     username = user.username if user.username else ""
     user_id = user.id
+
+    # Telegram Chat Menu Button ko Green WebApp Button me convert karna
+    try:
+        await client.set_chat_menu_button(
+            chat_id=message.chat.id,
+            menu_button=MenuButtonWebApp(text="🟢 Open App", web_app=WebAppInfo(url=MINI_APP_URL))
+        )
+    except Exception as e:
+        print(f"Menu Button Set Error: {e}")
 
     is_joined = await check_user_joined(client, user_id)
     
@@ -136,4 +141,3 @@ print("Bot Successfully Start Ho Gaya Hai!")
 
 if __name__ == "__main__":
     app.run()
-
